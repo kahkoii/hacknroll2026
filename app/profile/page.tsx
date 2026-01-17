@@ -174,13 +174,13 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </div>
-                  <Button variant='ghost' size='sm'>
+                  <Button className='hover:cursor-pointer' variant='ghost' size='sm'>
                     View
                   </Button>
                 </div>
               ))}
             </div>
-            <Button className='mt-4 w-full' variant='outline'>
+            <Button className='mt-4 w-full hover:cursor-pointer' variant='outline'>
               <Users className='mr-2 h-4 w-4' />
               Create New Group
             </Button>
