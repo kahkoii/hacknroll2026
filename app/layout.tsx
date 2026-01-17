@@ -9,6 +9,7 @@ import {
 } from '@clerk/nextjs';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
+import { Navbar } from '@/components/ui/navbar';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,7 +37,8 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} flex h-full flex-col antialiased`}
         >
-          <header className='flex h-16 flex-shrink-0 items-center justify-end gap-4 p-4'>
+          <header className='flex h-16 flex-shrink-0 items-center justify-end gap-4 px-14 py-10'>
+            <Navbar />
             <SignedOut>
               <SignInButton>
                 <button className='h-10 cursor-pointer rounded-full bg-[#6c47ff] px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base'>
@@ -51,9 +53,6 @@ export default function RootLayout({
             </SignedOut>
             <SignedIn>
               <UserButton />
-              <a href='/profile'>
-                <button>Profile</button>
-              </a>
             </SignedIn>
           </header>
           <main className='flex-1 overflow-auto'>{children}</main>
