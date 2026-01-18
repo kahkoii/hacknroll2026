@@ -13,10 +13,10 @@ export function Navbar() {
         <Button variant={pathname === '/' ? 'default' : 'ghost'} asChild>
           <Link href='/'>Events</Link>
         </Button>
-        <Button variant={pathname === '/create-event' ? 'default' : 'ghost'} asChild>
-          <Link href='/create-event'>New Event</Link>
-        </Button>
-        <Button variant={pathname === '/plan-event' ? 'default' : 'ghost'} asChild>
+        <Button
+          variant={pathname === '/plan-event' ? 'default' : 'ghost'}
+          asChild
+        >
           <Link href='/plan-event'>Planner</Link>
         </Button>
         <Button variant={pathname === '/profile' ? 'default' : 'ghost'} asChild>
