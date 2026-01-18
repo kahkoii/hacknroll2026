@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Bell, Check, X } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
+import { useUser } from '@clerk/nextjs';
 
 interface IncomingInvite {
   id: string
@@ -20,8 +21,10 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [pendingInvites, setPendingInvites] = useState<IncomingInvite[]>([])
+  const { isLoaded, isSignedIn, user } = useUser()
 
   async function fetchInvites(): Promise<IncomingInvite[]> {
+    if (!isLoaded || !isSignedIn) return []
     const demoIncomingInvites: IncomingInvite[] = [
       {
         id: "demo-1",
@@ -51,7 +54,7 @@ export function Navbar() {
   }
 
   async function onAcceptInvite(inviteId: string) {
-    console.log(`TODO: Accepted invite ${inviteId}`)
+    console.log(`TODO: ${user?.primaryEmailAddress?.emailAddress} Accepted invite ${inviteId}`)
   }
 
   async function onDeclineInvite(inviteId: string) {
@@ -90,6 +93,7 @@ export function Navbar() {
           <Link href='/profile'>Profile</Link>
         </Button>
 
+        { (isLoaded && isSignedIn) && (
         <div className="relative" ref={dropdownRef}>
           <Button
             variant="ghost"
@@ -105,6 +109,7 @@ export function Navbar() {
               </span>
             )}
           </Button>
+          
 
           {/* Dropdown */}
           {isOpen && (
@@ -180,6 +185,7 @@ export function Navbar() {
             </div>
           )}
         </div>
+        )}
       </div>
     </nav>
   );
