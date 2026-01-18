@@ -19,7 +19,7 @@ interface CreateEvent {
   invites: Invite[]
 }
 
-export default function EventCreator() {
+export default function HeroSection() {
   const [events, setEvents] = useState<CreateEvent[]>([])
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null)
   const [showForm, setShowForm] = useState(true)
