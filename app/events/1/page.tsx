@@ -120,6 +120,10 @@ export default function EventDetailsPage() {
   const [removedEventIds, setRemovedEventIds] = useState<number[]>([]);
   const [isClient, setIsClient] = useState(false);
 
+  async function generateExcuse(){
+    setLeaveReason("I need to save my drowning goldfish.")
+  }
+
   // Get event ID safely
   const eventId = params?.id;
   const event = getEventDetails(eventId);
@@ -502,6 +506,12 @@ export default function EventDetailsPage() {
             />
 
             <div className='flex justify-end gap-3'>
+              <button
+                onClick={generateExcuse}
+                className='rounded-lg border bg-blue-600 border-gray-300 text-white px-4 py-2 font-medium transition hover:bg-gray-50 hover:cursor-pointer'
+              >
+                Generate Excuse
+              </button>
               <button
                 onClick={handleCancelLeave}
                 className='rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition hover:cursor-pointer hover:bg-gray-50'
