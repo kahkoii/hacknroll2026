@@ -207,7 +207,7 @@ export default function EventDetailsPage() {
               </button>
               <button
                 onClick={handleLeaveEvent}
-                className='rounded-lg bg-orange-500 p-2 text-white transition hover:bg-orange-600'
+                className='rounded-lg bg-orange-500 p-2 text-white transition hover:bg-orange-600 hover:cursor-pointer'
               >
                 Leave Event
               </button>
@@ -372,13 +372,13 @@ export default function EventDetailsPage() {
             <div className='flex justify-end gap-3'>
               <button
                 onClick={handleCancelLeave}
-                className='rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition hover:bg-gray-50'
+                className='rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition hover:bg-gray-50 hover:cursor-pointer'
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitLeave}
-                className='rounded-lg bg-orange-500 px-4 py-2 font-medium text-white transition hover:bg-orange-600'
+                className='rounded-lg bg-orange-500 px-4 py-2 font-medium text-white transition hover:bg-orange-600 hover:cursor-pointer'
               >
                 Confirm Leave
               </button>
