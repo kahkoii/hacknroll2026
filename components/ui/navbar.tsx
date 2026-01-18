@@ -13,44 +13,36 @@ interface IncomingInvite {
   eventDate: string
   eventTime?: string
   fromEmail: string
-  status: "pending" | "accepted" | "declined"
+  toEmail: string
 }
 
 export function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [pendingInvites, setPendingInvites] = useState<IncomingInvite[]>([])
+  const [pendingInvites, setPendingInvites] = useState<IncomingInvite[]>([
+    {
+      id: "demo-1",
+      eventTitle: "Team Standup Meeting",
+      eventDate: "2026-02-01",
+      eventTime: "10:00",
+      fromEmail: "alice@example.com",
+      toEmail: "bob@example.com",
+    },
+    {
+      id: "demo-2",
+      eventTitle: "Product Launch Party",
+      eventDate: "2026-02-15",
+      fromEmail: "bob@example.com",
+      toEmail: "bob@example.com",
+    },
+  ])
   const { isLoaded, isSignedIn, user } = useUser()
 
   async function fetchInvites(): Promise<IncomingInvite[]> {
     if (!isLoaded || !isSignedIn) return []
-    const demoIncomingInvites: IncomingInvite[] = [
-      {
-        id: "demo-1",
-        eventTitle: "Team Standup Meeting",
-        eventDate: "2026-02-01",
-        eventTime: "10:00",
-        fromEmail: "alice@example.com",
-        status: "pending",
-      },
-      {
-        id: "demo-2",
-        eventTitle: "Product Launch Party",
-        eventDate: "2026-02-15",
-        fromEmail: "bob@example.com",
-        status: "pending",
-      },
-      {
-        id: "demo-3",
-        eventTitle: "Design Review",
-        eventDate: "2026-01-25",
-        eventTime: "14:30",
-        fromEmail: "carol@example.com",
-        status: "accepted",
-      },
-    ];
-    return demoIncomingInvites;
+    // TODO
+    return pendingInvites;
   }
 
   async function onAcceptInvite(inviteId: string) {
@@ -61,13 +53,8 @@ export function Navbar() {
     console.log(`TODO: Declined invite ${inviteId}`)
   }
 
-
   useEffect(() => {
-    fetchInvites().then((incomingInvites) => {
-      const pendingInvites = incomingInvites.filter((i) => i.status === "pending")
-      setPendingInvites(pendingInvites)
-    })
-  
+    fetchInvites()
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
@@ -75,7 +62,7 @@ export function Navbar() {
     } 
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }, [pendingInvites])
 
   return (
     <nav className='bg-background flex items-center justify-between px-6 py-4'>
@@ -144,7 +131,6 @@ export function Navbar() {
                             <p className="mt-1 text-xs text-muted-foreground">From: {invite.fromEmail}</p>
                           </div>
 
-                          {invite.status === "pending" ? (
                             <div className="flex shrink-0 gap-1">
                               <Button
                                 size="icon"
@@ -165,17 +151,6 @@ export function Navbar() {
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
-                          ) : (
-                            <span
-                              className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
-                                invite.status === "accepted"
-                                  ? "bg-primary/10 text-primary"
-                                  : "bg-destructive/10 text-destructive"
-                              }`}
-                            >
-                              {invite.status === "accepted" ? "Accepted" : "Declined"}
-                            </span>
-                          )}
                         </div>
                       </li>
                     ))}
