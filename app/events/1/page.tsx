@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -10,6 +10,7 @@ import {
   Edit,
   Trash2,
   Video,
+  Undo2,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -115,21 +116,76 @@ export default function EventDetailsPage() {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [leaveReason, setLeaveReason] = useState('');
 
+  // State for tracking removed events
+  const [removedEventIds, setRemovedEventIds] = useState<number[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
   // Get event ID safely
   const eventId = params?.id;
   const event = getEventDetails(eventId);
+
+  // Check if this event is currently removed
+  const [isEventRemoved, setIsEventRemoved] = useState(false);
+
+  // Load removedEventIds from localStorage on client side
+  useEffect(() => {
+    setIsClient(true);
+    const saved = localStorage.getItem('removedEventIds');
+    if (saved) {
+      const parsedIds = JSON.parse(saved);
+      setRemovedEventIds(parsedIds);
+      setIsEventRemoved(parsedIds.includes(event.id));
+    }
+  }, [event.id]);
+
+  // Update isEventRemoved when removedEventIds changes
+  useEffect(() => {
+    if (isClient) {
+      setIsEventRemoved(removedEventIds.includes(event.id));
+    }
+  }, [removedEventIds, event.id, isClient]);
+
+  // Save removedEventIds to localStorage whenever it changes
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('removedEventIds', JSON.stringify(removedEventIds));
+    }
+  }, [removedEventIds, isClient]);
 
   const handleGoBack = () => {
     router.push('/');
   };
 
   const handleEdit = () => {
+    if (!isClient) return;
+
+    // Load edited events from localStorage
+    const editedEvents = JSON.parse(
+      localStorage.getItem('editedEvents') || '{}',
+    );
+
+    // For Team Strategy Meeting (id: 1), update with sample edits
+    if (event.id === 1) {
+      const updates = {
+        name: 'Team Strategy Meeting (Updated)',
+        date: 'Jan 26, 2026', // Changed date
+        time: '3:00 PM - 4:30 PM', // Changed time
+        participants: 10, // Updated participant count
+      };
+
+      editedEvents[1] = updates;
+      localStorage.setItem('editedEvents', JSON.stringify(editedEvents));
+    }
+
     router.push(`/events/${event.id}/edit`);
   };
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this event?')) {
-      // Handle delete logic here
+      // For Team Strategy Meeting, add to removed events
+      if (event.id === 1 && isClient) {
+        setRemovedEventIds((prev) => [...prev, event.id]);
+      }
       router.push('/');
     }
   };
@@ -144,11 +200,21 @@ export default function EventDetailsPage() {
   };
 
   const handleSubmitLeave = () => {
-    // Handle leave logic here
-    console.log('Leave reason:', leaveReason);
+    // For Team Strategy Meeting, remove from events list
+    if (event.id === 1 && isClient) {
+      setRemovedEventIds((prev) => [...prev, event.id]);
+    }
+
     setShowLeaveModal(false);
     setLeaveReason('');
     router.push('/');
+  };
+
+  // New function to restore event
+  const handleRestoreEvent = () => {
+    if (isClient) {
+      setRemovedEventIds((prev) => prev.filter((id) => id !== event.id));
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -164,6 +230,30 @@ export default function EventDetailsPage() {
     }
   };
 
+  // Show loading state until client-side
+  if (!isClient) {
+    return (
+      <div className='min-h-screen bg-gray-50'>
+        <div className='mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8'>
+          <div className='animate-pulse'>
+            <div className='mb-6'>
+              <div className='mb-4 h-6 w-32 rounded bg-gray-200'></div>
+              <div className='h-10 w-3/4 rounded bg-gray-200'></div>
+            </div>
+            <div className='grid gap-6 lg:grid-cols-3'>
+              <div className='space-y-6 lg:col-span-2'>
+                <div className='h-64 rounded-lg bg-gray-200'></div>
+                <div className='h-48 rounded-lg bg-gray-200'></div>
+                <div className='h-64 rounded-lg bg-gray-200'></div>
+              </div>
+              <div className='h-96 rounded-lg bg-gray-200'></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className='min-h-screen bg-gray-50'>
       <div className='mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8'>
@@ -176,6 +266,27 @@ export default function EventDetailsPage() {
             <ArrowLeft className='h-5 w-5' />
             Back to Events
           </button>
+
+          {/* Show event status banner */}
+          {isEventRemoved && event.id === 1 && (
+            <div className='mb-6 rounded-lg border border-orange-200 bg-orange-50 p-4'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-orange-100'>
+                    <Calendar className='h-5 w-5 text-orange-600' />
+                  </div>
+                  <div>
+                    <p className='font-medium text-orange-800'>
+                      You have left this event
+                    </p>
+                    <p className='text-sm text-orange-600'>
+                      This event is hidden from your events list
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className='flex items-start justify-between'>
             <div className='flex items-start gap-4'>
@@ -205,12 +316,24 @@ export default function EventDetailsPage() {
               >
                 <Trash2 className='h-5 w-5' />
               </button>
-              <button
-                onClick={handleLeaveEvent}
-                className='rounded-lg bg-orange-500 p-2 text-white transition hover:bg-orange-600'
-              >
-                Leave Event
-              </button>
+
+              {/* Conditionally show Leave or Restore button */}
+              {isEventRemoved ? (
+                <button
+                  onClick={handleRestoreEvent}
+                  className='flex items-center gap-2 rounded-lg bg-green-500 p-2 px-4 text-white transition hover:bg-green-600'
+                >
+                  <Undo2 className='h-5 w-5' />
+                  Restore Event
+                </button>
+              ) : (
+                <button
+                  onClick={handleLeaveEvent}
+                  className='rounded-lg bg-orange-500 p-2 px-4 text-white transition hover:bg-orange-600'
+                >
+                  Leave Event
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -358,13 +481,22 @@ export default function EventDetailsPage() {
               Leave Event
             </h2>
             <p className='mb-4 text-gray-600'>
-              Please provide a reason for leaving &quot;{event.name}&quot;:
+              Are you sure you want to leave &quot;{event.name}&quot;?
             </p>
+
+            {event.id === 1 && (
+              <div className='mb-4 rounded-lg bg-blue-50 p-3'>
+                <p className='text-sm text-blue-700'>
+                  <strong>Note:</strong> This event will be removed from your
+                  homepage. You can restore it later from this page.
+                </p>
+              </div>
+            )}
 
             <textarea
               value={leaveReason}
               onChange={(e) => setLeaveReason(e.target.value)}
-              placeholder='Enter your reason for leaving...'
+              placeholder='Optional: Enter your reason for leaving...'
               className='mb-4 w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-orange-500 focus:outline-none'
               rows={4}
             />

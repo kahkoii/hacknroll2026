@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -14,7 +14,8 @@ import { useRouter } from 'next/navigation';
 export default function EventsPage() {
   const router = useRouter();
 
-  const [events] = useState([
+  // Initial events data
+  const initialEvents = [
     {
       id: 1,
       name: 'Team Strategy Meeting',
@@ -60,10 +61,57 @@ export default function EventsPage() {
       status: 'completed',
       color: 'bg-gray-400',
     },
-  ]);
+  ];
 
+  // Initialize with empty arrays/objects for SSR
+  const [removedEventIds, setRemovedEventIds] = useState<number[]>([]);
+  const [editedEvents, setEditedEvents] = useState<Record<number, any>>({});
+  const [events, setEvents] = useState(initialEvents);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isClient, setIsClient] = useState(false);
+
+  // Load data from localStorage only on client side
+  useEffect(() => {
+    setIsClient(true);
+    const savedRemovedIds = localStorage.getItem('removedEventIds');
+    const savedEditedEvents = localStorage.getItem('editedEvents');
+
+    if (savedRemovedIds) {
+      setRemovedEventIds(JSON.parse(savedRemovedIds));
+    }
+
+    if (savedEditedEvents) {
+      setEditedEvents(JSON.parse(savedEditedEvents));
+    }
+  }, []);
+
+  // Update events when removedEventIds or editedEvents change
+  useEffect(() => {
+    if (!isClient) return;
+
+    let updatedEvents = initialEvents.filter(
+      (event) => !removedEventIds.includes(event.id),
+    );
+
+    // Apply edits if any
+    updatedEvents = updatedEvents.map((event) => {
+      if (editedEvents[event.id]) {
+        return { ...event, ...editedEvents[event.id] };
+      }
+      return event;
+    });
+
+    setEvents(updatedEvents);
+  }, [removedEventIds, editedEvents, isClient]);
+
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    if (!isClient) return;
+
+    localStorage.setItem('removedEventIds', JSON.stringify(removedEventIds));
+    localStorage.setItem('editedEvents', JSON.stringify(editedEvents));
+  }, [removedEventIds, editedEvents, isClient]);
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch = event.name
@@ -76,10 +124,48 @@ export default function EventsPage() {
   const upcomingCount = events.filter((e) => e.status === 'upcoming').length;
   const completedCount = events.filter((e) => e.status === 'completed').length;
 
-  // Add this function to handle event click
+  // Function to restore event
+  const restoreEvent = (eventId: number) => {
+    setRemovedEventIds((prev) => prev.filter((id) => id !== eventId));
+  };
+
   const handleEventClick = (eventId: number) => {
     router.push(`/events/${eventId}`);
   };
+
+  // Don't render conditionally based on localStorage until client-side
+  if (!isClient) {
+    return (
+      <div className='min-h-full bg-gray-50'>
+        <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
+          <div className='mb-8'>
+            <h1 className='mb-2 text-3xl font-bold text-gray-900'>My Events</h1>
+            <p className='text-gray-600'>
+              Manage and organize all your upcoming meetings and events
+            </p>
+          </div>
+          <div className='animate-pulse space-y-4'>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className='rounded-lg border border-gray-200 bg-white p-6'
+              >
+                <div className='flex items-start justify-between'>
+                  <div className='flex flex-1 items-start gap-4'>
+                    <div className='h-16 w-2 rounded-full bg-gray-200'></div>
+                    <div className='flex-1 space-y-2'>
+                      <div className='h-6 w-3/4 rounded bg-gray-200'></div>
+                      <div className='h-4 w-1/2 rounded bg-gray-200'></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='min-h-full bg-gray-50'>
@@ -90,6 +176,33 @@ export default function EventsPage() {
           <p className='text-gray-600'>
             Manage and organize all your upcoming meetings and events
           </p>
+
+          {/* Show restoration banner only for Team Strategy Meeting when removed */}
+          {removedEventIds.includes(1) && (
+            <div className='mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-blue-100'>
+                    <Calendar className='h-5 w-5 text-blue-600' />
+                  </div>
+                  <div>
+                    <p className='font-medium text-blue-800'>
+                      Team Strategy Meeting has been left
+                    </p>
+                    <p className='text-sm text-blue-600'>
+                      You can restore it from the event details page
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => restoreEvent(1)}
+                  className='rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700'
+                >
+                  Restore Event
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className='mt-6 grid grid-cols-1 gap-4 md:grid-cols-3'>
             <div className='rounded-lg border border-gray-200 bg-white p-6 shadow-sm'>
@@ -228,6 +341,11 @@ export default function EventsPage() {
                       <div className='mb-2 flex items-center gap-3'>
                         <h3 className='text-xl font-semibold text-gray-900'>
                           {event.name}
+                          {editedEvents[event.id] && (
+                            <span className='ml-2 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700'>
+                              Edited
+                            </span>
+                          )}
                         </h3>
                         {event.status === 'completed' && (
                           <span className='rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600'>
@@ -254,7 +372,7 @@ export default function EventsPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle menu click
+                      // Only show menu for other events
                     }}
                     className='rounded-lg p-2 transition hover:bg-gray-100'
                   >
