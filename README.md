@@ -9,7 +9,7 @@ We built ExcuseMe using Next.js and TypeScript to handle both the frontend and b
 
 We used Shadcn UI to create a clean and consistent interface with reusable components, enabling fast iteration on product design without sacrificing flexibility. Clerk was integrated for secure user authentication and session management, allowing us to focus on core features instead of building auth from scratch.
 
-On the backend, we designed a relational data model to track users, groups, events, and excuses. An LLM-powered pipeline normalises free-text excuses and detects repeated or suspicious patterns over time, enabling our social credit scoring system.
+On the backend, we used AI to normalise free-text excuses and detects repeated or suspicious patterns over time, enabling our social credit scoring system.
 
 ## Challenges we ran into
 One major challenge was designing a system that could fairly judge excuses without being overly strict. Natural language is messy, and people phrase the same reason in many ways. Another challenge was modeling social behavior in the database while keeping the system simple enough to build within a hackathon timeframe. Balancing technical ambition with reliable execution was a constant tradeoff.
