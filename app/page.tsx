@@ -9,11 +9,13 @@ import {
   Plus,
   Search,
 } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import HeroSection from './hero/page';
 
 export default function EventsPage() {
+  const router = useRouter();
+
   const [events] = useState([
     {
       id: 1,
@@ -76,6 +78,11 @@ export default function EventsPage() {
 
   const upcomingCount = events.filter((e) => e.status === 'upcoming').length;
   const completedCount = events.filter((e) => e.status === 'completed').length;
+
+  // Add this function to handle event click
+  const handleEventClick = (eventId: number) => {
+    router.push(`/events/${eventId}`);
+  };
 
   return (
       <div className='min-h-full bg-gray-50'>
@@ -147,113 +154,125 @@ export default function EventsPage() {
                 />
               </div>
 
-              <div className='flex w-full gap-2 sm:w-auto'>
-                <button
-                  onClick={() => setFilter('all')}
-                  className={`rounded-lg px-4 py-2 font-medium transition ${
-                    filter === 'all'
-                      ? 'bg-[#008f4a] text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setFilter('upcoming')}
-                  className={`rounded-lg px-4 py-2 font-medium transition ${
-                    filter === 'upcoming'
-                      ? 'bg-[#008f4a] text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Upcoming
-                </button>
-                <button
-                  onClick={() => setFilter('completed')}
-                  className={`rounded-lg px-4 py-2 font-medium transition ${
-                    filter === 'completed'
-                      ? 'bg-[#008f4a] text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Completed
-                </button>
-              </div>
-              <Link
-                href='/create-event'
-                className='inline-flex items-center justify-center rounded-md bg-[#008f4a] px-4 py-2 font-medium text-white transition hover:bg-[#008f4a]'
+            <div className='flex w-full gap-2 sm:w-auto'>
+              <button
+                onClick={() => setFilter('all')}
+                className={`rounded-lg px-4 py-2 font-medium transition ${
+                  filter === 'all'
+                    ? 'bg-[#008f4a] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               >
-                New Event
-              </Link>
+                All
+              </button>
+              <button
+                onClick={() => setFilter('upcoming')}
+                className={`rounded-lg px-4 py-2 font-medium transition ${
+                  filter === 'upcoming'
+                    ? 'bg-[#008f4a] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Upcoming
+              </button>
+              <button
+                onClick={() => setFilter('completed')}
+                className={`rounded-lg px-4 py-2 font-medium transition ${
+                  filter === 'completed'
+                    ? 'bg-[#008f4a] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Completed
+              </button>
             </div>
+            <button
+              onClick={() => router.push('/create-event')}
+              className='inline-flex items-center justify-center rounded-md bg-[#008f4a] px-4 py-2 font-medium text-white transition hover:bg-[#007a3f]'
+            >
+              New Event
+            </button>
           </div>
+        </div>
 
-          {/* Events List */}
-          <div className='space-y-4'>
-            {filteredEvents.length === 0 ? (
-              <div className='rounded-lg border border-gray-200 bg-white p-12 text-center shadow-sm'>
-                <Calendar className='mx-auto mb-4 h-16 w-16 text-gray-300' />
-                <h3 className='mb-2 text-xl font-semibold text-gray-900'>
-                  No events found
-                </h3>
-                <p className='mb-6 text-gray-600'>
-                  {searchTerm
-                    ? 'Try adjusting your search'
-                    : 'Get started by creating your first event'}
-                </p>
-                <button className='inline-flex items-center gap-2 rounded-lg bg-[#6c47ff] px-6 py-2 font-medium text-white transition hover:bg-[#5639cc]'>
-                  <Plus className='h-5 w-5' />
-                  Create Event
-                </button>
-              </div>
-            ) : (
-              filteredEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className='cursor-pointer rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md'
-                >
-                  <div className='flex items-start justify-between'>
-                    <div className='flex flex-1 items-start gap-4'>
-                      <div
-                        className={`h-16 w-2 rounded-full ${event.color}`}
-                      ></div>
-                      <div className='flex-1'>
-                        <div className='mb-2 flex items-center gap-3'>
-                          <h3 className='text-xl font-semibold text-gray-900'>
-                            {event.name}
-                          </h3>
-                          {event.status === 'completed' && (
-                            <span className='rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600'>
-                              Completed
-                            </span>
-                          )}
+        {/* Events List */}
+        <div className='space-y-4'>
+          {filteredEvents.length === 0 ? (
+            <div className='rounded-lg border border-gray-200 bg-white p-12 text-center shadow-sm'>
+              <Calendar className='mx-auto mb-4 h-16 w-16 text-gray-300' />
+              <h3 className='mb-2 text-xl font-semibold text-gray-900'>
+                No events found
+              </h3>
+              <p className='mb-6 text-gray-600'>
+                {searchTerm
+                  ? 'Try adjusting your search'
+                  : 'Get started by creating your first event'}
+              </p>
+              <button
+                onClick={() => router.push('/create-event')}
+                className='inline-flex items-center gap-2 rounded-lg bg-[#6c47ff] px-6 py-2 font-medium text-white transition hover:bg-[#5639cc]'
+              >
+                <Plus className='h-5 w-5' />
+                Create Event
+              </button>
+            </div>
+          ) : (
+            filteredEvents.map((event) => (
+              <div
+                key={event.id}
+                onClick={() => handleEventClick(event.id)}
+                className='cursor-pointer rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md'
+              >
+                <div className='flex items-start justify-between'>
+                  <div className='flex flex-1 items-start gap-4'>
+                    <div
+                      className={`h-16 w-2 rounded-full ${event.color}`}
+                    ></div>
+                    <div className='flex-1'>
+                      <div className='mb-2 flex items-center gap-3'>
+                        <h3 className='text-xl font-semibold text-gray-900'>
+                          {event.name}
+                        </h3>
+                        {event.status === 'completed' && (
+                          <span className='rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600'>
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                      <div className='flex flex-wrap gap-4 text-gray-600'>
+                        <div className='flex items-center gap-2'>
+                          <Calendar className='h-4 w-4' />
+                          <span>{event.date}</span>
                         </div>
-                        <div className='flex flex-wrap gap-4 text-gray-600'>
-                          <div className='flex items-center gap-2'>
-                            <Calendar className='h-4 w-4' />
-                            <span>{event.date}</span>
-                          </div>
-                          <div className='flex items-center gap-2'>
-                            <Clock className='h-4 w-4' />
-                            <span>{event.time}</span>
-                          </div>
-                          <div className='flex items-center gap-2'>
-                            <Users className='h-4 w-4' />
-                            <span>{event.participants} participants</span>
-                          </div>
+                        <div className='flex items-center gap-2'>
+                          <Clock className='h-4 w-4' />
+                          <span>{event.time}</span>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                          <Users className='h-4 w-4' />
+                          <span>{event.participants} participants</span>
                         </div>
                       </div>
                     </div>
-                    <button className='rounded-lg p-2 transition hover:bg-gray-100'>
-                      <MoreVertical className='h-5 w-5 text-gray-600' />
-                    </button>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle menu click
+                    }}
+                    className='rounded-lg p-2 transition hover:bg-gray-100'
+                  >
+                    <MoreVertical className='h-5 w-5 text-gray-600' />
+                  </button>
                 </div>
-              ))
-            )}
-          </div>
+              </div>
+            ))
+          )}
         </div>
-        ) : (<HeroSection />)}
+      </div>
+        ) : (
+          <HeroSection />
+        )}
       </div>
   );
 }
